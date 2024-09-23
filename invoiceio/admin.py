@@ -15,7 +15,6 @@ class InvoiceImtemAdmin(admin.ModelAdmin):
     search_fields = ("uid", "slug")
     readonly_fields = (
         "total",
-        "quantity",
     )
 
 
