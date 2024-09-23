@@ -18,4 +18,3 @@ class ProductAdmin(admin.ModelAdmin):
         "title",
         "status"
     )
-    readonly_fields = ("price",)

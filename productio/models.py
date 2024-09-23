@@ -1,5 +1,7 @@
 from autoslug import AutoSlugField
 
+from decimal import Decimal
+
 from versatileimagefield.fields import VersatileImageField
 
 from django.db import models
@@ -24,5 +26,15 @@ class Product(BaseModelWithUID):
         upload_to=get_product_media_path_prefix,
         blank=True,
     )
+
     def __str__(self):
-        return self.name
+        return f"ID: {self.id}, Title: {self.title}"
+
+    def get_discount(self):
+        """Returns the discount amount in currency, not percentage."""
+        discount = Decimal(self.discount)
+        return self.price * (discount / 100) if discount else 0
+
+    def get_discounted_price(self):
+        """Returns the price after applying the discount."""
+        return self.price - self.get_discount() if self.discount else self.price
