@@ -22,7 +22,7 @@ class Customer(AbstractUser, BaseModelWithUID):
         max_length=20,
         choices=CustomerStatus,
         db_index=True,
-        default=CustomerStatus.DRAFT
+        default=CustomerStatus.DRAFT,
     )
     objects = CustomCustomerManager()
 
