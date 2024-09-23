@@ -47,7 +47,7 @@ THIRD_PARTY_APPS = [
     "django_filters",
     "versatileimagefield",
 ]
-PROJECTS_APP = ["accountio", "common"]
+PROJECTS_APP = ["accountio", "common", "productio", "invoiceio"]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECTS_APP
 
 MIDDLEWARE = [
