@@ -27,7 +27,11 @@ class PrivateMeInvoiceItemListSerializer(serializers.ModelSerializer):
 
 class PrivateMeInvoiceItemDetailsSerializer(serializers.ModelSerializer):
     product = ProvateMeProductSlimSerialize(read_only=True)
-
+    product_slug = serializers.SlugRelatedField(
+        queryset=Product.objects.filter(status=ProductStatusChoices.ACTIVE),
+        slug_field="slug",
+        write_only=True,
+    )
     class Meta:
         model = InvoiceItem
         fields = [
@@ -35,13 +39,13 @@ class PrivateMeInvoiceItemDetailsSerializer(serializers.ModelSerializer):
             "title",
             "customer",
             "product",
+            "product_slug",
             "total",
             "quantity",
             "created_at",
         ]
         read_only_fields = ["uid", "title", "customer", "total", "created_at"]
 
-    # def update(self, validated_data):
-    #     return InvoiceItem.objects.create(
-    #         customer=self.context["request"].user, **validated_data
-    #     )
+    def update(self, instance,  validated_data):
+        instance.product = validated_data.pop("product_slug", None)
+        return super().update(instance, validated_data)
