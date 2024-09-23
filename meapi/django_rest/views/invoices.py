@@ -4,9 +4,9 @@ from rest_framework.generics import (
     get_object_or_404,
 )
 
-from invoiceio.models import InvoiceItem
+from invoiceio.models import InvoiceItem, Invoice
 
-from ..serializer.invoices import PrivateMeInvoiceItemListSerializer, PrivateMeInvoiceItemDetailsSerializer
+from ..serializer.invoices import PrivateMeInvoiceItemListSerializer, PrivateMeInvoiceItemDetailsSerializer, PrivateMeInvoiceListSerializer
 
 
 class PrivateMeInvoiceItemList(ListCreateAPIView):
@@ -25,3 +25,10 @@ class PrivateMeInvoiceItemDetails(RetrieveUpdateDestroyAPIView):
             customer=self.request.user,
             uid = self.kwargs.get("uid", None)
         )
+    
+class PrivateMeInvoiceList(ListCreateAPIView):
+    serializer_class = PrivateMeInvoiceListSerializer
+
+    def get_queryset(self):
+        return Invoice.objects.filter(invoice_item__customer=self.request.user)
+
