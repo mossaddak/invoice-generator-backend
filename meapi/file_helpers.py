@@ -24,7 +24,7 @@ def create_invoice(
 
     os.makedirs(media_invoices_dir, exist_ok=True)
     file_path = os.path.join(media_invoices_dir, filename)
-    pdf = SimpleDocTemplate(file_path, pagesize=A4)
+    pdf = SimpleDocTemplate(filename, pagesize=A4)
 
     # Container for the PDF elements
     elements = []
