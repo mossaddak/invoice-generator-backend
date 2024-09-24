@@ -24,7 +24,7 @@ def create_invoice(
 
     os.makedirs(media_invoices_dir, exist_ok=True)
     file_path = os.path.join(media_invoices_dir, filename)
-    pdf = SimpleDocTemplate(filename, pagesize=A4)
+    pdf = SimpleDocTemplate(file_path, pagesize=A4)
 
     # Container for the PDF elements
     elements = []
@@ -84,5 +84,4 @@ def create_invoice(
 
     # Build the PDF
     pdf.build(elements)
-    # return f"http://{request.get_host()}/media/invoices/{filename}"
-    return f"http://{request.get_host()}/mossaddak0invoice0generator/invoice-generator-backend/media/invoices/{filename}"
+    return f"http://{request.get_host()}/media/invoices/{filename}"
