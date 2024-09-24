@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-5q4m#o02l$v1+5yeru+hd&g&a%le#qu(*65r35u6m09(*gnmq2"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["127.0.0.1", "mossaddak0invoice0generator.pythonanywhere.com"]
 
