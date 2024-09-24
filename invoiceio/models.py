@@ -70,19 +70,33 @@ class Invoice(BaseModelWithUID):
 
         super().save(*args, **kwargs)
 
-    def get_invoice_items(self):
+    def get_invoice_connectors(self):
         return self.invoiceitemconnector_set.all().select_related("invoice_item")
 
     def get_total(self):
         return (
-            sum(connector.invoice_item.total for connector in self.get_invoice_items())
+            sum(
+                connector.invoice_item.total
+                for connector in self.get_invoice_connectors()
+            )
             + self.tax
         )
 
     def get_quantity(self):
         return sum(
-            connector.invoice_item.quantity for connector in self.get_invoice_items()
+            connector.invoice_item.quantity
+            for connector in self.get_invoice_connectors()
         )
+
+    def get_invoice_items(self):
+        item_ids = self.get_invoice_connectors().values_list(
+            "invoice_item_id", flat=True
+        )
+        print("item_ids=======================++++>", item_ids)
+
+        items = InvoiceItem.objects.filter(id__in=item_ids)
+        print("items=======================++++>", items)
+        return InvoiceItem.objects.filter(id__in=item_ids)
 
 
 class InvoiceItemConnector(BaseModelWithUID):

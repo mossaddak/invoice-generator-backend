@@ -175,3 +175,6 @@ AUTH_USER_MODEL = "accountio.Customer"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Remove warning for urls check
+SILENCED_SYSTEM_CHECKS = ["urls.W002", "security.W019"]

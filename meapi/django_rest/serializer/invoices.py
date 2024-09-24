@@ -2,6 +2,7 @@ from django.db import transaction
 
 from rest_framework import serializers
 
+from invoiceio.django_rest.serializers.common import InvoiceItemSlimSerializer
 from invoiceio.models import InvoiceItem, Invoice, InvoiceItemConnector
 
 from productio.choices import ProductStatusChoices
@@ -96,8 +97,48 @@ class PrivateMeInvoiceListSerializer(serializers.ModelSerializer):
             invoice = Invoice.objects.create(**validated_data)
 
             # Create relations between invoice and invoice items
-            InvoiceItemConnector.objects.bulk_create([
-                InvoiceItemConnector(invoice=invoice, invoice_item=invoice_item)
-                for invoice_item in invoice_items
-            ])
+            InvoiceItemConnector.objects.bulk_create(
+                [
+                    InvoiceItemConnector(invoice=invoice, invoice_item=invoice_item)
+                    for invoice_item in invoice_items
+                ]
+            )
         return invoice
+
+
+class PrivateMeInvoiceDetailSerializer(serializers.ModelSerializer):
+    total = serializers.CharField(source="get_total", read_only=True)
+    quantity = serializers.CharField(source="get_quantity", read_only=True)
+    invoice_items = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Invoice
+        fields = [
+            "uid",
+            "company_name",
+            "issue_date",
+            "due_date",
+            "total",
+            "paid_amount",
+            "status",
+            "tax",
+            "quantity",
+            "invoice_items",
+        ]
+        read_only_fields = [
+            "uid",
+            "title",
+            "total",
+            "issue_date",
+            "status",
+            "quantity",
+            "invoice_items",
+        ]
+
+    def get_invoice_items(self, instance):
+        connectors = instance.invoiceitemconnector_set.all().select_related(
+            "invoice_item"
+        )
+        return InvoiceItemSlimSerializer(
+            [connector.invoice_item for connector in connectors], many=True
+        ).data
