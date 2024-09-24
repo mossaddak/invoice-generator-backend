@@ -84,4 +84,5 @@ def create_invoice(
 
     # Build the PDF
     pdf.build(elements)
-    return f"http://{request.get_host()}/media/invoices/{filename}"
+    # return f"http://{request.get_host()}/media/invoices/{filename}"
+    return f"http://{request.get_host()}/mossaddak0invoice0generator/invoice-generator-backend/media/invoices/{filename}"
