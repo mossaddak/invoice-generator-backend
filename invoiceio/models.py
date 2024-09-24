@@ -71,17 +71,6 @@ class Invoice(BaseModelWithUID):
             for connector in self.get_invoice_connectors()
         )
 
-    def get_invoice_items(self):
-        item_ids = self.get_invoice_connectors().values_list(
-            "invoice_item_id", flat=True
-        )
-        print("item_ids=======================++++>", item_ids)
-
-        items = InvoiceItem.objects.filter(id__in=item_ids)
-        print("items=======================++++>", items)
-        return InvoiceItem.objects.filter(id__in=item_ids)
-
-
 class InvoiceItemConnector(BaseModelWithUID):
     slug = AutoSlugField(
         populate_from=get_invoice_item_connector_slug, unique=True, db_index=True

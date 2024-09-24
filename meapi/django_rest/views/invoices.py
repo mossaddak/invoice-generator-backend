@@ -7,6 +7,8 @@ from rest_framework.generics import (
 
 from invoiceio.models import InvoiceItem, Invoice, InvoiceItemConnector
 
+from ...file_helpers import create_invoice
+
 from ..serializer.invoices import (
     PrivateMeInvoiceItemListSerializer,
     PrivateMeInvoiceItemDetailsSerializer,
@@ -51,7 +53,26 @@ class PrivateMeInvoiceDetails(RetrieveDestroyAPIView):
     serializer_class = PrivateMeInvoiceDetailSerializer
 
     def get_object(self):
-        return get_object_or_404(
+        invoice = get_object_or_404(
             Invoice.objects.filter(),
             uid=self.kwargs.get("uid", None),
         )
+
+        invoice_item_ids = invoice.invoiceitemconnector_set.filter(
+            invoice_item__customer=self.request.user
+        ).values_list("invoice_item_id", flat=True)
+        invoice_items = InvoiceItem.objects.filter(id__in=invoice_item_ids).values(
+            "title", "quantity", "total"
+        )
+        total_amount = invoice.get_total()
+        if self.request.query_params.get("download_invoice", None) == "true":
+            create_invoice(
+                invoice.company_name,
+                invoice.issue_date,
+                invoice.due_date,
+                total_amount,
+                invoice.paid_amount,
+                invoice_items,
+                filename="invoice.pdf",
+            )
+        return invoice
