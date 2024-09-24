@@ -53,18 +53,6 @@ class Invoice(BaseModelWithUID):
     def __str__(self):
         return f"ID: {self.id}, Company Name: {self.company_name}"
 
-    def clean(self):
-        super().clean()  # Call the parent's clean method
-        if self.due_date < self.issue_date.date():
-            raise ValidationError(
-                {"due_date": "Due date cannot be before the issue date."}
-            )
-
-    def save(self, *args, **kwargs):
-        
-
-        super().save(*args, **kwargs)
-
     def get_invoice_connectors(self):
         return self.invoiceitemconnector_set.all().select_related("invoice_item")
 

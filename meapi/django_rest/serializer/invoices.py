@@ -92,6 +92,11 @@ class PrivateMeInvoiceListSerializer(serializers.ModelSerializer):
         paid_amount = attrs["paid_amount"]
         due_date = attrs["due_date"]
 
+        if due_date < timezone.now().date():
+            raise serializers.ValidationError(
+                {"due_date": "Due date cannot be before the issue date."}
+            )
+
         # Getting associate invoice items
         invoice_items = InvoiceItem.objects.filter(
             uid__in=invoice_item_uuid_list, customer=customer
