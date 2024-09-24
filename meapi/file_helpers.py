@@ -1,10 +1,17 @@
+import os
+
+from django.urls import reverse
+
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 
+from invoice_generator.settings import BASE_DIR
+
 
 def create_invoice(
+    request,
     company_name,
     issue_date,
     due_date,
@@ -13,9 +20,11 @@ def create_invoice(
     invoice_items,
     filename="invoice.pdf",
 ):
-    
-    # Create the PDF document
-    pdf = SimpleDocTemplate(filename, pagesize=A4)
+    media_invoices_dir = os.path.join(BASE_DIR, "media", "invoices")
+
+    os.makedirs(media_invoices_dir, exist_ok=True)
+    file_path = os.path.join(media_invoices_dir, filename)
+    pdf = SimpleDocTemplate(file_path, pagesize=A4)
 
     # Container for the PDF elements
     elements = []
@@ -37,7 +46,7 @@ def create_invoice(
     ]
 
     for data in invoice_items:
-        table_data.append([data['title'], data['quantity'], data['total']])
+        table_data.append([data["title"], data["quantity"], data["total"]])
 
     # Create Table and Style
     table = Table(table_data)
@@ -75,7 +84,4 @@ def create_invoice(
 
     # Build the PDF
     pdf.build(elements)
-
-
-
-
+    return f"http://{request.get_host()}/media/invoices/{filename}"

@@ -66,13 +66,15 @@ class PrivateMeInvoiceDetails(RetrieveDestroyAPIView):
         )
         total_amount = invoice.get_total()
         if self.request.query_params.get("download_invoice", None) == "true":
-            create_invoice(
+            invoice.file = create_invoice(
+                self.request,
                 invoice.company_name,
                 invoice.issue_date,
                 invoice.due_date,
                 total_amount,
                 invoice.paid_amount,
                 invoice_items,
-                filename="invoice.pdf",
+                filename=f"invoice-{invoice.uid}.pdf",
             )
+            invoice.save_dirty_fields()
         return invoice

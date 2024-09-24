@@ -169,6 +169,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 STATIC_URL = "static/"
 
+
 AUTH_USER_MODEL = "accountio.Customer"
 
 # Default primary key field type
