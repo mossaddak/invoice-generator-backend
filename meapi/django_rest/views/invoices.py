@@ -1,5 +1,3 @@
-from django.db.models import Prefetch
-
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveDestroyAPIView,

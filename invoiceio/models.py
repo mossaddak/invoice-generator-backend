@@ -61,12 +61,7 @@ class Invoice(BaseModelWithUID):
             )
 
     def save(self, *args, **kwargs):
-        if self.paid_amount == 0:
-            self.payment_status = InvoiceStatusChoices.UNPAID
-        elif self.paid_amount == self.total:
-            self.payment_status = InvoiceStatusChoices.PAID
-        elif timezone.now().date() > self.due_date and self.paid_amount != self.total:
-            self.payment_status = InvoiceStatusChoices.OVERDUE
+        
 
         super().save(*args, **kwargs)
 
