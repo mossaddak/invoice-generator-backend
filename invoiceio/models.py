@@ -1,5 +1,6 @@
 from autoslug import AutoSlugField
 
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from django.db import models
@@ -9,7 +10,11 @@ from accountio.models import Customer
 from common.models import BaseModelWithUID
 
 from .choices import InvoiceStatusChoices
-from .utils import get_invoice_item_slug, get_invoice_slug
+from .utils import (
+    get_invoice_item_slug,
+    get_invoice_slug,
+    get_invoice_item_connector_slug,
+)
 
 
 class InvoiceItem(BaseModelWithUID):
@@ -36,20 +41,24 @@ class InvoiceItem(BaseModelWithUID):
 
 class Invoice(BaseModelWithUID):
     slug = AutoSlugField(populate_from=get_invoice_slug, unique=True, db_index=True)
-    invoice_item = models.ForeignKey(InvoiceItem, on_delete=models.CASCADE)
     issue_date = models.DateTimeField(default=timezone.now)
     due_date = models.DateField()
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(
         max_length=20, choices=InvoiceStatusChoices, default=InvoiceStatusChoices.UNPAID
     )
     tax = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    quantity = models.IntegerField()
     company_name = models.CharField(max_length=50)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"ID: {self.id}, Company Name: {self.company_name}"
+
+    def clean(self):
+        super().clean()  # Call the parent's clean method
+        if self.due_date < self.issue_date.date():
+            raise ValidationError(
+                {"due_date": "Due date cannot be before the issue date."}
+            )
 
     def save(self, *args, **kwargs):
         if self.paid_amount == 0:
@@ -58,10 +67,44 @@ class Invoice(BaseModelWithUID):
             self.payment_status = InvoiceStatusChoices.PAID
         elif timezone.now().date() > self.due_date and self.paid_amount != self.total:
             self.payment_status = InvoiceStatusChoices.OVERDUE
+
         super().save(*args, **kwargs)
+
+    def get_invoice_connectors(self):
+        return self.invoiceitemconnector_set.all().select_related("invoice_item")
 
     def get_total(self):
         return (
-            sum(invoiceitem.get_total() for invoiceitem in self.invoice_items.all())
+            sum(
+                connector.invoice_item.total
+                for connector in self.get_invoice_connectors()
+            )
             + self.tax
         )
+
+    def get_quantity(self):
+        return sum(
+            connector.invoice_item.quantity
+            for connector in self.get_invoice_connectors()
+        )
+
+    def get_invoice_items(self):
+        item_ids = self.get_invoice_connectors().values_list(
+            "invoice_item_id", flat=True
+        )
+        print("item_ids=======================++++>", item_ids)
+
+        items = InvoiceItem.objects.filter(id__in=item_ids)
+        print("items=======================++++>", items)
+        return InvoiceItem.objects.filter(id__in=item_ids)
+
+
+class InvoiceItemConnector(BaseModelWithUID):
+    slug = AutoSlugField(
+        populate_from=get_invoice_item_connector_slug, unique=True, db_index=True
+    )
+    invoice_item = models.ForeignKey(InvoiceItem, on_delete=models.CASCADE)
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"ID: {self.id}, Invoice Item: {self.invoice_item}"
