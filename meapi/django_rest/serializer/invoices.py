@@ -82,8 +82,9 @@ class PrivateMeInvoiceListSerializer(serializers.ModelSerializer):
             "tax",
             "quantity",
             "invoice_item_uuid_list",
+            "file",
         ]
-        read_only_fields = ["uid", "title", "total", "issue_date", "status", "quantity"]
+        read_only_fields = ["uid", "title", "total", "issue_date", "status", "quantity","file"]
 
     def validate(self, attrs):
         customer = self.context["request"].user
@@ -152,6 +153,7 @@ class PrivateMeInvoiceDetailSerializer(serializers.ModelSerializer):
             "tax",
             "quantity",
             "invoice_items",
+            "file",
         ]
         read_only_fields = [
             "uid",
@@ -161,6 +163,7 @@ class PrivateMeInvoiceDetailSerializer(serializers.ModelSerializer):
             "status",
             "quantity",
             "invoice_items",
+            "file",
         ]
 
     def get_invoice_items(self, instance):
