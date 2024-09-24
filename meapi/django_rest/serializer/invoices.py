@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from rest_framework import serializers
 
 from invoiceio.models import InvoiceItem, Invoice, InvoiceItemConnector
@@ -16,8 +18,15 @@ class PrivateMeInvoiceItemListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InvoiceItem
-        fields = ["uid", "title", "customer", "product", "total", "quantity"]
-        read_only_fields = ["uid", "title", "customer", "total"]
+        fields = [
+            "uid",
+            "title",
+            "product",
+            "total",
+            "quantity",
+            "created_at",
+        ]
+        read_only_fields = ["uid", "title", "total", "created_at"]
 
     def create(self, validated_data):
         return InvoiceItem.objects.create(
@@ -53,37 +62,42 @@ class PrivateMeInvoiceItemDetailsSerializer(serializers.ModelSerializer):
 
 
 class PrivateMeInvoiceListSerializer(serializers.ModelSerializer):
-    # total = serializers.CharField(source="get_total", read_only=True)
-    invoice_item_uuid_list = serializers.ListField(write_only=True, required=False)
+    total = serializers.CharField(source="get_total", read_only=True)
+    quantity = serializers.CharField(source="get_quantity", read_only=True)
+    invoice_item_uuid_list = serializers.ListField(write_only=True)
 
     class Meta:
         model = Invoice
         fields = [
             "uid",
-            "title",
+            "company_name",
             "issue_date",
             "due_date",
-            # "total",
+            "total",
             "paid_amount",
             "status",
             "tax",
             "quantity",
-            "company_name",
             "invoice_item_uuid_list",
         ]
-        read_only_fields = ["uid", "title", "total", "issue_date", "status"]
+        read_only_fields = ["uid", "title", "total", "issue_date", "status", "quantity"]
 
     def create(self, validated_data):
         customer = self.context["request"].user
         invoice_item_uuid_list = validated_data.pop("invoice_item_uuid_list", None)
-        
-        invoice = Invoice.objects.create(**validated_data)
 
-        
-        if invoice_item_uuid_list:
-            invoice_items = InvoiceItem.objects.filter(
-                uid__in=invoice_item_uuid_list, invoice_item__customer=customer
-            )
+        # Getting associate invoice items
+        invoice_items = InvoiceItem.objects.filter(
+            uid__in=invoice_item_uuid_list, customer=customer
+        )
 
-            for item in invoice_items:
-                InvoiceItemConnector.objects.create(invoice=invoice, invoice_item=item)
+        with transaction.atomic():
+            # Create invoice
+            invoice = Invoice.objects.create(**validated_data)
+
+            # Create relations between invoice and invoice items
+            InvoiceItemConnector.objects.bulk_create([
+                InvoiceItemConnector(invoice=invoice, invoice_item=invoice_item)
+                for invoice_item in invoice_items
+            ])
+        return invoice

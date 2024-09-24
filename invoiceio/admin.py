@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import InvoiceItem, Invoice
+from .models import InvoiceItem, Invoice, InvoiceItemConnector
 
 
 @admin.register(InvoiceItem)
@@ -13,14 +13,21 @@ class InvoiceImtemAdmin(admin.ModelAdmin):
         "quantity",
     )
     search_fields = ("uid", "slug")
-    readonly_fields = (
-        "total",
-    )
+    readonly_fields = ("total",)
 
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
     model = Invoice
-    list_display = ("uid", "slug", "total", "quantity")
+    list_display = (
+        "uid",
+        "slug"
+    )
     search_fields = ("uid", "slug")
-    readonly_fields = ("total", "quantity")
+
+
+@admin.register(InvoiceItemConnector)
+class InvoiceItemConnectorAdmin(admin.ModelAdmin):
+    model = InvoiceItemConnector
+    list_display = ("uid", "slug")
+    search_fields = ("uid", "slug")

@@ -30,5 +30,5 @@ class PrivateMeInvoiceList(ListCreateAPIView):
     serializer_class = PrivateMeInvoiceListSerializer
 
     def get_queryset(self):
-        return Invoice.objects.filter(invoice_item__customer=self.request.user)
+        return Invoice.objects.filter()
 
