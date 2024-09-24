@@ -27,6 +27,8 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("admin/", admin.site.urls),
+    # authentication
+    path("api/v1/users/", include("accountio.django_rest.urls")),
 
     # meapi
     path("api/v1/me/", include("meapi.django_rest.urls")),
